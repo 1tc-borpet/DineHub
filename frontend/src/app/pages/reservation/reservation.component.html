@@ -31,14 +31,31 @@
             <input type="date" formControlName="reservation_date" [min]="today" />
           </div>
           <div class="form-group">
-            <label>Időpont</label>
-            <input type="time" formControlName="reservation_time" />
+            <label>Személyek száma</label>
+            <input type="number" formControlName="party_size" min="1" max="20" />
           </div>
         </div>
 
         <div class="form-group">
-          <label>Személyek száma</label>
-          <input type="number" formControlName="party_size" min="1" max="20" />
+          <label>Időpont kiválasztása</label>
+          @if (!form.get('reservation_date')?.value) {
+            <p class="hint-text">Először válassz dátumot az elérhető időpontok megtekintéséhez.</p>
+          } @else {
+            <div class="time-slots-grid">
+              @for (slot of timeSlots; track slot) {
+                <button
+                  type="button"
+                  class="time-slot"
+                  [class.booked]="isBooked(slot)"
+                  [class.selected]="selectedTime === slot"
+                  [disabled]="isBooked(slot)"
+                  (click)="selectTime(slot)"
+                >
+                  {{ slot }}
+                </button>
+              }
+            </div>
+          }
         </div>
 
         <div class="form-group">

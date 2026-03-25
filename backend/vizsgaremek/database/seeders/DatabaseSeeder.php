@@ -19,7 +19,7 @@ class DatabaseSeeder extends Seeder
         User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
-            'password' => bcrypt('password123'),
+            'password' => 'password123',
             'role' => 'user',
             'is_active' => true,
         ]);
@@ -28,7 +28,7 @@ class DatabaseSeeder extends Seeder
         User::factory()->create([
             'name' => 'Admin',
             'email' => 'admin@example.com',
-            'password' => bcrypt('admin123'),
+            'password' => 'admin123',
             'role' => 'admin',
             'is_active' => true,
         ]);

@@ -23,7 +23,26 @@ Route::prefix('v1/auth')->group(function () {
 Route::get('v1/debug/users', function () {
     return response()->json([
         'total' => \App\Models\User::count(),
-        'users' => \App\Models\User::select('id', 'name', 'email', 'phone', 'role', 'is_active', 'created_at')->get(),
+        'recent' => \App\Models\User::select('id', 'name', 'email', 'phone', 'role', 'is_active', 'created_at')
+            ->latest('created_at')
+            ->limit(10)
+            ->get(),
+        'all_users' => \App\Models\User::select('id', 'name', 'email', 'phone', 'role', 'is_active', 'created_at')->get(),
+    ]);
+});
+
+// DEBUG: Naplózás ellenőrzése
+Route::get('v1/debug/logs', function () {
+    $logFile = storage_path('logs/laravel.log');
+    if (!file_exists($logFile)) {
+        return response()->json(['error' => 'Log file not found']);
+    }
+    
+    $logs = file_get_contents($logFile);
+    $lines = array_slice(explode("\n", $logs), -50);
+    
+    return response()->json([
+        'last_50_lines' => $lines,
     ]);
 });
 
@@ -135,6 +154,7 @@ Route::prefix('v1')->group(function () {
 
         // Asztalfoglalások
         Route::post('reservations', [ReservationController::class, 'store']);
+        Route::get('reservations/booked-slots', [ReservationController::class, 'bookedSlots']);
         Route::get('my-reservations', [ReservationController::class, 'userReservations']);
         Route::patch('reservations/{id}', [ReservationController::class, 'update']);
         Route::delete('reservations/{id}', [ReservationController::class, 'destroy']);
@@ -146,7 +166,7 @@ Route::prefix('v1')->group(function () {
 });
 
 // Admin route-ok
-Route::prefix('v1/admin')->middleware('auth:sanctum')->group(function () {
+Route::prefix('v1/admin')->middleware(['auth:sanctum', 'admin'])->group(function () {
     // Dashboard statisztikák és jelentések
     Route::get('dashboard/stats', [DashboardController::class, 'stats']);
     Route::get('dashboard/recent-orders', [DashboardController::class, 'recentOrders']);
@@ -177,5 +197,9 @@ Route::prefix('v1/admin')->middleware('auth:sanctum')->group(function () {
     Route::resource('restaurants', RestaurantController::class)->except(['show']);
     Route::resource('restaurants.categories', MenuCategoryController::class);
     Route::resource('categories.items', MenuItemController::class);
+    
+    // MenuItems szerkesztés (egyszerű endpoint)
+    Route::patch('menu-items/{id}', [MenuItemController::class, 'update']);
+    Route::post('menu-items', [MenuItemController::class, 'store']);
 });
 

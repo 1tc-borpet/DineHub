@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { Reservation, CreateReservationRequest } from '../models';
 
@@ -18,6 +18,13 @@ export class ReservationService {
 
   cancel(id: number): Observable<Reservation> {
     return this.http.delete<Reservation>(`${environment.apiUrl}/reservations/${id}`);
+  }
+
+  getBookedSlots(restaurantId: number, date: string): Observable<string[]> {
+    return this.http.get<{ success: boolean; data: string[] }>(
+      `${environment.apiUrl}/reservations/booked-slots`,
+      { params: { restaurant_id: restaurantId.toString(), date } }
+    ).pipe(map(res => res.data));
   }
 
   // Admin

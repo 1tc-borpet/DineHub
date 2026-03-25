@@ -113,6 +113,8 @@ class MenuItemController extends Controller
                 'image_url' => 'nullable|url',
                 'preparation_time' => 'nullable|integer|min:1|max:60',
                 'is_available' => 'nullable|boolean',
+                'rating' => 'sometimes|numeric|min:0|max:5',
+                'rating_count' => 'sometimes|integer|min:0',
                 'order' => 'nullable|integer|min:0',
             ]);
 

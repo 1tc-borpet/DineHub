@@ -45,6 +45,20 @@ class ReservationController extends Controller
                 'notes'            => 'nullable|string|max:500',
             ]);
 
+            // Ellenőrizzük, hogy az adott étteremben az adott időpontra van-e már aktív foglalás
+            $existingReservation = Reservation::where('restaurant_id', $validated['restaurant_id'])
+                ->where('reservation_date', $validated['reservation_date'])
+                ->where('reservation_time_only', $validated['reservation_time'])
+                ->whereIn('status', ['pending', 'confirmed'])
+                ->first();
+
+            if ($existingReservation) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Erre az időpontra már van foglalás. Kérlek válassz másik időpontot!',
+                ], Response::HTTP_CONFLICT);
+            }
+
             // Kombináljuk a dátumot és az időt egy datetime-ba
             $reservationDatetime = $validated['reservation_date'] . ' ' . $validated['reservation_time'] . ':00';
 
@@ -260,6 +274,37 @@ class ReservationController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Hiba a megerősítéskor.',
+                'error' => $e->getMessage(),
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Get booked time slots for a restaurant on a given date.
+     */
+    public function bookedSlots(Request $request)
+    {
+        try {
+            $request->validate([
+                'restaurant_id' => 'required|exists:restaurants,id',
+                'date' => 'required|date',
+            ]);
+
+            $bookedTimes = Reservation::where('restaurant_id', $request->restaurant_id)
+                ->where('reservation_date', $request->date)
+                ->whereIn('status', ['pending', 'confirmed'])
+                ->pluck('reservation_time_only')
+                ->unique()
+                ->values();
+
+            return response()->json([
+                'success' => true,
+                'data' => $bookedTimes,
+            ], Response::HTTP_OK);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Hiba a foglalt időpontok lekérésekor.',
                 'error' => $e->getMessage(),
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }

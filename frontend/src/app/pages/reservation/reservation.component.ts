@@ -26,6 +26,11 @@ export class ReservationComponent implements OnInit {
 
   today = new Date().toISOString().split('T')[0];
 
+  // Időpont-kezelés
+  timeSlots: string[] = [];
+  bookedSlots: string[] = [];
+  selectedTime: string = '';
+
   form: FormGroup = this.fb.group({
     restaurant_id: [1, Validators.required],
     reservation_date: ['', Validators.required],
@@ -35,8 +40,52 @@ export class ReservationComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.generateTimeSlots();
     this.restaurantService.getAll().subscribe({ next: (r) => { this.restaurants = r; } });
     this.loadMyReservations();
+
+    // Ha változik az étterem vagy a dátum, töltsük be a foglalt időpontokat
+    this.form.get('restaurant_id')?.valueChanges.subscribe(() => this.loadBookedSlots());
+    this.form.get('reservation_date')?.valueChanges.subscribe(() => this.loadBookedSlots());
+  }
+
+  generateTimeSlots(): void {
+    this.timeSlots = [];
+    for (let h = 11; h <= 21; h++) {
+      this.timeSlots.push(`${h.toString().padStart(2, '0')}:00`);
+      this.timeSlots.push(`${h.toString().padStart(2, '0')}:30`);
+    }
+  }
+
+  loadBookedSlots(): void {
+    const restaurantId = this.form.get('restaurant_id')?.value;
+    const date = this.form.get('reservation_date')?.value;
+    if (!restaurantId || !date) {
+      this.bookedSlots = [];
+      return;
+    }
+
+    this.reservationService.getBookedSlots(restaurantId, date).subscribe({
+      next: (slots) => {
+        this.bookedSlots = slots;
+        // Ha a kiválasztott időpont foglalt, töröljük
+        if (this.selectedTime && this.isBooked(this.selectedTime)) {
+          this.selectedTime = '';
+          this.form.patchValue({ reservation_time: '' });
+        }
+      },
+      error: () => { this.bookedSlots = []; }
+    });
+  }
+
+  isBooked(time: string): boolean {
+    return this.bookedSlots.includes(time);
+  }
+
+  selectTime(time: string): void {
+    if (this.isBooked(time)) return;
+    this.selectedTime = time;
+    this.form.patchValue({ reservation_time: time });
   }
 
   loadMyReservations(): void {
@@ -55,7 +104,13 @@ export class ReservationComponent implements OnInit {
       next: () => {
         this.success = true;
         this.loading = false;
-        this.form.reset({ restaurant_id: 1, party_size: 2 });
+        this.selectedTime = '';
+        // Megőrizzük az éttermet és dátumot, csak a time/notes/party_size resetelődik
+        const keepRestaurant = this.form.get('restaurant_id')?.value;
+        const keepDate = this.form.get('reservation_date')?.value;
+        this.form.patchValue({ reservation_time: '', notes: '', party_size: 2 });
+        // Újratöltjük a foglalt időpontokat, így az épp lefoglalt slot azonnal pirosra vált
+        this.loadBookedSlots();
         this.loadMyReservations();
       },
       error: (err) => {
@@ -68,7 +123,10 @@ export class ReservationComponent implements OnInit {
   cancel(id: number): void {
     if (!confirm('Biztosan törölni szeretnéd a foglalást?')) return;
     this.reservationService.cancel(id).subscribe({
-      next: () => { this.loadMyReservations(); }
+      next: () => {
+        this.loadMyReservations();
+        this.loadBookedSlots();
+      }
     });
   }
 

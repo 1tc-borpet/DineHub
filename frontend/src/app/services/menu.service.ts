@@ -27,4 +27,8 @@ export class MenuService {
     return this.http.get<ApiResponse<MenuItem>>(`${environment.apiUrl}/menu-items/${id}`)
       .pipe(map(res => res.data ?? (res as any)));
   }
+
+  updateMenuItem(id: number, data: Partial<MenuItem>): Observable<ApiResponse<MenuItem>> {
+    return this.http.patch<ApiResponse<MenuItem>>(`${environment.apiUrl}/admin/menu-items/${id}`, data);
+  }
 }

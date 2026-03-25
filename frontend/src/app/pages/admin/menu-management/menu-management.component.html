@@ -15,6 +15,12 @@
 
     @if (loading) { <div class="spinner"></div> }
 
+    @if (error) {
+      <div style="padding: 1rem; background: rgba(244,67,54,0.1); border: 1px solid #f44336; border-radius: 6px; color: #f44336; margin-bottom: 1rem;">
+        <strong>⚠️ Hiba:</strong> {{ error }}
+      </div>
+    }
+
     @if (!loading) {
       @for (cat of categories; track cat.id) {
         <div class="cat-section card">
@@ -25,12 +31,18 @@
           <div class="items-table">
             @for (item of getItems(cat.id); track item.id) {
               <div class="item-row" [class.unavailable]="!item.is_available">
-                <div class="item-name">
-                  {{ item.name }}
-                  @if (!item.is_available) { <span class="unavail-tag">Nem elérhető</span> }
+                <div class="item-info">
+                  <div class="item-name">
+                    {{ item.name }}
+                    @if (!item.is_available) { <span class="unavail-tag">Nem elérhető</span> }
+                  </div>
+                  <div class="item-desc">{{ item.description }}</div>
                 </div>
-                <span class="item-price">{{ item.price | number:'1.0-0' }} Ft</span>
-                @if (item.rating) { <span class="item-rating">⭐ {{ item.rating }}</span> }
+                <div class="item-details">
+                  <span class="item-price">{{ item.price | number:'1.0-0' }} Ft</span>
+                  @if (item.rating) { <span class="item-rating">⭐ {{ item.rating }}</span> }
+                </div>
+                <button type="button" class="btn btn-edit" (click)="openEditModal(item)">✏️ Szerkesztés</button>
               </div>
             }
           </div>
@@ -44,4 +56,32 @@
       }
     }
   </main>
+
+  <!-- Edit Modal -->
+  @if (editingItem) {
+    <div class="modal-overlay" (click)="closeModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>{{ editingItem.name }} szerkesztése</h2>
+          <button class="btn-close" (click)="closeModal()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Ár (Ft):</label>
+            <input type="number" [(ngModel)]="editPrice" class="form-input" min="0" step="10" />
+          </div>
+          <div class="form-group">
+            <label>Csillag (0-5):</label>
+            <input type="number" [(ngModel)]="editRating" class="form-input" min="0" max="5" step="0.1" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" (click)="saveChanges()" [disabled]="isSaving">
+            {{ isSaving ? '💾 Mentés...' : '💾 Mentés' }}
+          </button>
+          <button type="button" class="btn btn-secondary" (click)="closeModal()">Mégse</button>
+        </div>
+      </div>
+    </div>
+  }
 </div>

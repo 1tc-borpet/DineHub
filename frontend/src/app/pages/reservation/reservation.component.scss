@@ -58,3 +58,66 @@
   .reservation-layout { grid-template-columns: 1fr; }
   .form-row { grid-template-columns: 1fr; }
 }
+
+/* TIME SLOTS GRID */
+.time-slots-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.time-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.6rem 0.3rem;
+  border: 2px solid var(--border, #ddd);
+  border-radius: 8px;
+  background: var(--card-bg, #fff);
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  min-height: 50px;
+
+  &:hover:not(.booked) {
+    border-color: var(--primary, #4caf50);
+    background: rgba(76, 175, 80, 0.05);
+    transform: translateY(-1px);
+  }
+
+  &.selected {
+    border-color: var(--primary, #4caf50);
+    background: rgba(76, 175, 80, 0.15);
+    color: var(--primary, #4caf50);
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+  }
+
+  &.booked,
+  &:disabled {
+    background: #bdbdbd !important;
+    border-color: #aaa !important;
+    color: #777 !important;
+    cursor: not-allowed !important;
+    opacity: 0.6;
+    text-decoration: line-through;
+    pointer-events: none;
+    box-shadow: none;
+    transform: none;
+  }
+}
+
+.hint-text {
+  color: var(--text-secondary, #888);
+  font-size: 0.82rem;
+  margin-top: 0.5rem;
+  font-style: italic;
+}
+
+@media (max-width: 480px) {
+  .time-slots-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

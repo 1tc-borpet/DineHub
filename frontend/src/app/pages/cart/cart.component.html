@@ -1,21 +1,6 @@
 <div class="page-hero">
   <h1>Kosaram</h1>
   <p>Ellenőrizd a rendelésed, majd fizess</p>
-  <!-- DEBUG PANEL -->
-  <div style="background: #fee; padding: 15px; margin-top: 10px; border: 2px solid red; border-radius: 4px; font-family: monospace; font-size: 12px;">
-    <strong>DEBUG INFO:</strong><br>
-    Tételek: {{ cart.cartItems().length }}<br>
-    Restaurantok: {{ getRestaurantIds().length > 0 ? getRestaurantIds().join(', ') : 'nincs' }}<br>
-    <br>
-    <strong>Részletek:</strong><br>
-    @for (item of cart.cartItems(); track item.menuItem.id) {
-      <div style="margin-left: 10px; margin-top: 5px; padding: 5px; background: #fff; border: 1px solid #ccc;">
-        Étterem: {{ item.restaurantId }}<br>
-        Étel: {{ item.menuItem.name }} (ID: {{ item.menuItem.id }})<br>
-        Mennyiség: {{ item.quantity }}<br>
-      </div>
-    }
-  </div>
 </div>
 
 <div class="container section">

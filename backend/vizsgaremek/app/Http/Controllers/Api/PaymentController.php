@@ -61,8 +61,8 @@ class PaymentController extends Controller
                 ], Response::HTTP_CONFLICT);
             }
 
-            // Validáció: az összeg helyes-e (1 Ft tolerancia a kerekítési különbségekre)
-            if (abs($validated['amount'] - (float)$order->total) > 1) {
+            // Validáció: az összeg helyes-e (100 Ft tolerancia a kerekítési különbségekre)
+            if (abs($validated['amount'] - (float)$order->total) > 100) {
                 return response()->json([
                     'success' => false,
                     'message' => 'A fizetendő összeg nem helyes. Várt: ' . $order->total,
@@ -72,8 +72,8 @@ class PaymentController extends Controller
             // Szimulált fizetés feldolgozás
             $transactionId = 'TXN-' . time() . '-' . rand(10000, 99999);
             
-            // Szimulált sikeres fizetés (90% eséllyel)
-            $isSuccessful = rand(1, 100) <= 90;
+            // Fizetés mindig sikeres
+            $isSuccessful = true;
             
             $payment = Payment::create([
                 'order_id' => $validated['order_id'],

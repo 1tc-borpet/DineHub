@@ -15,6 +15,8 @@ class AuthController extends Controller
      */
     public function register(Request $request)
     {
+        \Log::info('Registration attempt', ['data' => $request->all()]);
+        
         try {
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
@@ -23,6 +25,8 @@ class AuthController extends Controller
                 'password' => 'required|string|min:8|confirmed',
                 'password_confirmation' => 'required|string|min:8',
             ]);
+
+            \Log::info('Validation passed', ['validated' => $validated]);
 
             $user = User::create([
                 'name' => $validated['name'],
@@ -33,8 +37,7 @@ class AuthController extends Controller
                 'is_active' => true,
             ]);
 
-            // Log regisztrációt
-            \Log::info('User registered', [
+            \Log::info('User created successfully', [
                 'user_id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
@@ -59,12 +62,19 @@ class AuthController extends Controller
                 'token' => $token,
             ], Response::HTTP_CREATED);
         } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::warning('Validation error during registration', ['errors' => $e->errors()]);
             return response()->json([
                 'success' => false,
                 'message' => 'Validációs hiba.',
                 'errors' => $e->errors(),
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         } catch (\Exception $e) {
+            \Log::error('Registration error', [
+                'message' => $e->getMessage(),
+                'code' => $e->getCode(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
             return response()->json([
                 'success' => false,
                 'message' => 'Hiba a regisztrációkor.',

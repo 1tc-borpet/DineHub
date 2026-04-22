@@ -1,0 +1,170 @@
+<div class="admin-layout">
+  <!-- Sidebar -->
+  <aside class="admin-sidebar">
+    <div class="sidebar-brand">🍽️ Admin</div>
+    <nav>
+      <a routerLink="/admin/dashboard" routerLinkActive="active">📊 Dashboard</a>
+      <a routerLink="/admin/orders" routerLinkActive="active">📦 Rendelések</a>
+      <a routerLink="/admin/reservations" routerLinkActive="active">📅 Foglalások</a>
+      <a routerLink="/admin/menu-management" routerLinkActive="active">Étlap kezelés</a>
+      <a routerLink="/" class="back-link">← Vissza a főoldalra</a>
+    </nav>
+  </aside>
+
+  <!-- Main content -->
+  <main class="admin-main">
+    <h1 class="admin-title">📊 Dashboard</h1>
+
+    @if (loading) { <div class="spinner"></div> }
+
+    @if (!loading && stats) {
+      <!-- Stats grid -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">📦</div>
+          <div class="stat-info">
+            <div class="stat-num">{{ stats.total_orders }}</div>
+            <div class="stat-label">Összes rendelés</div>
+          </div>
+        </div>
+        <div class="stat-card orange">
+          <div class="stat-icon">⏳</div>
+          <div class="stat-info">
+            <div class="stat-num">{{ stats.pending_orders }}</div>
+            <div class="stat-label">Várakozó rendelés</div>
+          </div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-icon">💰</div>
+          <div class="stat-info">
+            <div class="stat-num">{{ stats.total_revenue | number:'1.0-0' }} Ft</div>
+            <div class="stat-label">Összes bevétel</div>
+          </div>
+        </div>
+        <div class="stat-card blue">
+          <div class="stat-icon">📅</div>
+          <div class="stat-info">
+            <div class="stat-num">{{ stats.total_reservations }}</div>
+            <div class="stat-label">Foglalások</div>
+          </div>
+        </div>
+        <div class="stat-card purple">
+          <div class="stat-icon">👥</div>
+          <div class="stat-info">
+            <div class="stat-num">{{ stats.total_users }}</div>
+            <div class="stat-label">Felhasználók</div>
+          </div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-icon">🔔</div>
+          <div class="stat-info">
+            <div class="stat-num">{{ stats.pending_reservations }}</div>
+            <div class="stat-label">Várakozó foglalás</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <!-- Recent orders -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Legutóbbi rendelések</h3>
+            <a routerLink="/admin/orders" class="btn btn-outline btn-sm">Összes →</a>
+          </div>
+          @for (o of recentOrders; track o.id) {
+            <div class="list-row">
+              <span>#{{ o.id }} – {{ o.order_type }}</span>
+              <div>
+                <span class="badge badge-{{ o.status }}">{{ o.status }}</span>
+                <span class="list-amount">{{ o.total_amount | number:'1.0-0' }} Ft</span>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Recent reservations -->
+        <div class="card">
+          <div class="card-header">
+            <h3>Legutóbbi foglalások</h3>
+            <a routerLink="/admin/reservations" class="btn btn-outline btn-sm">Összes →</a>
+          </div>
+          @for (r of recentReservations; track r.id) {
+            <div class="list-row">
+              <span>{{ r.reservation_date }} {{ r.reservation_time }}</span>
+              <div>
+                <span class="badge badge-{{ r.status }}">{{ r.status }}</span>
+                <span class="list-sub">{{ r.party_size }} fő</span>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Menu Editor Section -->
+      <div class="card" style="margin-top: 2rem;">
+        <div class="card-header">
+          <h3>📋 Étlap szerkesztés</h3>
+        </div>
+
+        <div class="menu-editor">
+          @if (categories.length === 0) {
+            <p style="padding: 1rem; color: var(--text-secondary);">⏳ Étlap adatok betöltésben...</p>
+          }
+
+          @for (cat of categories; track cat.id) {
+            <div class="cat-section">
+              <h4 style="margin: 1rem 1rem 0.5rem; font-weight: 600;">{{ cat.name }}</h4>
+              <div class="items-list">
+                @if (getItems(cat.id).length === 0) {
+                  <p style="padding: 0.5rem 1rem; font-size: 0.85rem; color: var(--text-secondary);">Nincsenek ételek</p>
+                }
+                @for (item of getItems(cat.id); track item.id) {
+                  <div class="item-row">
+                    <div class="item-info">
+                      <div class="item-name">{{ item.name }}</div>
+                      <div class="item-price">{{ item.price | number:'1.0-0' }} Ft</div>
+                    </div>
+                    <div class="item-rating">
+                      @if (item.rating) {
+                        <span>⭐ {{ item.rating }}</span>
+                      }
+                    </div>
+                    <button type="button" class="btn btn-edit" (click)="openEditModal(item)">✏️</button>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </main>
+
+  <!-- Edit Modal -->
+  @if (editingItem) {
+    <div class="modal-overlay" (click)="closeModal()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>{{ editingItem.name }} szerkesztése</h2>
+          <button class="btn-close" (click)="closeModal()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Ár (Ft):</label>
+            <input type="number" [(ngModel)]="editPrice" class="form-input" min="0" step="10" />
+          </div>
+          <div class="form-group">
+            <label>Csillag (0-5):</label>
+            <input type="number" [(ngModel)]="editRating" class="form-input" min="0" max="5" step="0.1" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" (click)="saveChanges()" [disabled]="isSaving">
+            {{ isSaving ? '💾 Mentés...' : '💾 Mentés' }}
+          </button>
+          <button type="button" class="btn btn-secondary" (click)="closeModal()">Mégse</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

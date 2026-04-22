@@ -1,0 +1,50 @@
+### Bejelentkezés - Test User
+POST http://127.0.0.1:8000/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "password123"
+}
+
+@token = YOUR_TOKEN
+
+### Kosár lekérése
+GET http://127.0.0.1:8000/api/v1/cart
+Authorization: Bearer @token
+
+### Pizza hozzáadása (Margherita - ID: 1, Restaurant: 1)
+POST http://127.0.0.1:8000/api/v1/cart/items
+Content-Type: application/json
+Authorization: Bearer @token
+
+{
+  "menu_item_id": 1,
+  "restaurant_id": 1,
+  "quantity": 1
+}
+
+### Szushi hozzáadása (Philadelphia Roll - ID: 8, Restaurant: 2)
+POST http://127.0.0.1:8000/api/v1/cart/items
+Content-Type: application/json
+Authorization: Bearer @token
+
+{
+  "menu_item_id": 8,
+  "restaurant_id": 2,
+  "quantity": 1
+}
+
+### Kosár lekérése (mindkét étteremmel)
+GET http://127.0.0.1:8000/api/v1/cart
+Authorization: Bearer @token
+
+### Checkout - mindkét étteremből rendelés
+POST http://127.0.0.1:8000/api/v1/orders/checkout-cart
+Content-Type: application/json
+Authorization: Bearer @token
+
+{
+  "type": "delivery",
+  "notes": "Teszt rendelés"
+}

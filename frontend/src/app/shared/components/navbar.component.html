@@ -1,0 +1,58 @@
+<nav class="navbar">
+  <div class="nav-container">
+    <a routerLink="/" class="nav-brand" (click)="closeMenu()">
+      <span class="brand-icon"></span>
+      <span class="brand-name">DineHub</span>
+    </a>
+
+    <button class="hamburger" (click)="toggleMenu()" [class.active]="mobileMenuOpen">
+      <span></span><span></span><span></span>
+    </button>
+
+    <div class="nav-links" [class.open]="mobileMenuOpen">
+      <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}" (click)="closeMenu()">Főoldal</a>
+
+      <!-- Menü dropdown -->
+      <div class="nav-dropdown" [class.open]="menuDropdownOpen">
+        <a class="dropdown-trigger" routerLinkActive="active" (click)="toggleMenuDropdown($event)">
+          Menü <span class="dropdown-arrow">▾</span>
+        </a>
+        <div class="dropdown-menu">
+          @for (r of restaurants; track r.id) {
+            <a [routerLink]="['/menu', r.id]" class="dropdown-item" (click)="closeMenu()">
+              <span class="dropdown-icon"></span>
+              <span>{{ r.name }}</span>
+            </a>
+          }
+          @if (restaurants.length === 0) {
+            <span class="dropdown-item">Betöltés...</span>
+          }
+        </div>
+      </div>
+
+      <a routerLink="/reservation" routerLinkActive="active" (click)="closeMenu()">Foglalás</a>
+
+      @if (auth.isLoggedIn()) {
+        <a routerLink="/orders" routerLinkActive="active" (click)="closeMenu()">Rendeléseim</a>
+        @if (auth.isAdmin()) {
+          <a routerLink="/admin/dashboard" routerLinkActive="active" class="admin-link" (click)="closeMenu()">Admin</a>
+        }
+        <a routerLink="/profile" routerLinkActive="active" (click)="closeMenu()">{{ auth.currentUser()?.name }}</a>
+        <button class="btn-logout" (click)="auth.logout()">Kilépés</button>
+      } @else {
+        <a routerLink="/auth/login" routerLinkActive="active" (click)="closeMenu()">Bejelentkezés</a>
+        <a routerLink="/auth/register" class="btn-register" (click)="closeMenu()">Regisztráció</a>
+      }
+
+      <a routerLink="/cart" class="cart-btn" (click)="closeMenu()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+        </svg>
+        @if (cart.getTotalItems() > 0) {
+          <span class="cart-badge">{{ cart.getTotalItems() }}</span>
+        }
+      </a>
+    </div>
+  </div>
+</nav>
